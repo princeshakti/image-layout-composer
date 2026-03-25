@@ -30,7 +30,7 @@ API starts on `http://localhost:5000`. Swagger UI available at `http://localhost
 
 **Terminal 2 — Frontend:**
 ```bash
-cd frontend
+cd Frontend
 npm install
 npm run dev
 ```
