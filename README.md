@@ -68,7 +68,7 @@ docker run -p 8080:8080 image-layout-composer
 ## Running the Frontend
 
 ```bash
-cd frontend
+cd Frontend
 npm install   # first time only
 npm run dev
 ```
