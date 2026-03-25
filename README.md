@@ -38,6 +38,15 @@ Frontend starts on `http://localhost:3000`.
 
 Open **`http://localhost:3000`** in your browser. The Vite dev server proxies all `/api` and `/outputs` requests from port 3000 to port 5000, so there are no CORS issues.
 
+**If "cannot found module error" happens after running npm run dev, run these commands in Frontend folder to delete the broken node_modules and lock file and reinstall**
+```bash
+rm -rf node_modules
+rm -f package-lock.json
+
+npm install
+
+npm run dev
+```
 ---
 
 ## Running the API (options)
