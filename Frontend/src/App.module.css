@@ -1,0 +1,41 @@
+.shell {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 52px 24px 96px;
+}
+
+/* ── Header ── */
+.header {
+  margin-bottom: 52px;
+}
+
+.wordmark {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+
+.headline {
+  font-size: clamp(26px, 5vw, 42px);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.headline em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+.sub {
+  font-size: 15px;
+  color: var(--text-muted);
+  max-width: 460px;
+  line-height: 1.6;
+}

@@ -1,0 +1,166 @@
+/* Shared styles used by UploadStep, ComposeStep, and DownloadStep */
+
+.step {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Card ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 26px;
+  margin-bottom: 16px;
+}
+
+.cardTitle {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 18px;
+}
+
+/* ── Buttons ── */
+.btnPrimary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: #0e0e0f;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  width: 100%;
+  transition: opacity 0.15s, transform 0.1s;
+  cursor: pointer;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.btnPrimary:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.btnPrimary:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.btnOutline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border2);
+  font-size: 14px;
+  font-weight: 300;
+  transition: border-color 0.15s, transform 0.1s;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btnOutline:hover:not(:disabled) {
+  border-color: var(--border3);
+}
+
+.btnOutline:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.btnOutline:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.btnGhost {
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font-size: 13px;
+  padding: 8px 0;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btnGhost:hover {
+  opacity: 0.7;
+}
+
+/* ── Layout helpers ── */
+.row {
+  display: flex;
+  gap: 10px;
+}
+
+.resetRow {
+  text-align: center;
+  margin-top: 24px;
+}
+
+/* ── Session badge ── */
+.sessionBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 999px;
+  margin-bottom: 18px;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.sessionLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.sessionId {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sessionCount {
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* ── Result image ── */
+.imageWrap {
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #111;
+  max-height: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.resultImage {
+  width: 100%;
+  height: auto;
+  max-height: 520px;
+  object-fit: contain;
+  display: block;
+}

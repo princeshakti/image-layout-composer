@@ -1,0 +1,466 @@
+{
+  "info": {
+    "name": "Image Layout Composer API",
+    "description": "Run requests in order: 1 Upload → 2 Compose → 3 Download.\n\n`sessionId` and `outputFileName` are captured automatically — no copy-pasting required.\n\nThe **Error Cases** folder can be run independently at any time.\n\n**Important:** Each session can only be composed once. Running the Compose request a second time on the same session returns 409 Conflict. The Error Cases folder includes a dedicated test for this.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string",
+      "description": "Change to http://localhost:8080 if running via Docker."
+    },
+    {
+      "key": "sessionId",
+      "value": "",
+      "type": "string",
+      "description": "Auto-populated by the Upload request."
+    },
+    {
+      "key": "outputFileName",
+      "value": "",
+      "type": "string",
+      "description": "Auto-populated by the Compose request."
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Upload Images",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "files",
+              "type": "file",
+              "src": [],
+              "description": "Select one or more JPG or PNG files. Add extra rows with the same key 'files' to upload several at once."
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/images/upload",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "images", "upload"]
+        },
+        "description": "Upload one or more JPG/PNG images.\n\n**What gets saved automatically:**\n- `sessionId` → used by the Compose request\n\n**Key response fields:**\n- `images[].imageId` — unique identifier for each accepted image\n- `images[].originalFileName` — the name you uploaded\n\n**Constraints:** JPG/PNG only · 20 MB per file · 80 MB total · 16 files max · zero-byte files rejected"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "",
+              "if (pm.response.code === 200) {",
+              "    const body = pm.response.json();",
+              "",
+              "    pm.collectionVariables.set('sessionId', body.sessionId);",
+              "    console.log('[Upload] sessionId saved:', body.sessionId);",
+              "",
+              "    (body.images || []).forEach((img, i) => {",
+              "        console.log('[Upload] image[' + i + '] imageId:', img.imageId,",
+              "                    '| file:', img.originalFileName);",
+              "    });",
+              "",
+              "    pm.test('sessionId is present', () => {",
+              "        pm.expect(body.sessionId).to.be.a('string').and.not.empty;",
+              "    });",
+              "    pm.test('At least one image returned', () => {",
+              "        pm.expect(body.images).to.be.an('array').with.length.above(0);",
+              "    });",
+              "    pm.test('Each image has an imageId', () => {",
+              "        body.images.forEach(img => {",
+              "            pm.expect(img.imageId, 'imageId for ' + img.originalFileName)",
+              "                .to.be.a('string').and.not.empty;",
+              "        });",
+              "    });",
+              "    pm.test('Each image has originalFileName', () => {",
+              "        body.images.forEach(img => {",
+              "            pm.expect(img.originalFileName).to.be.a('string').and.not.empty;",
+              "        });",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"sessionId\": \"a3f8e1c0b2d74e5f9a1c3e5b7d9f0123\",\n  \"images\": [\n    {\n      \"imageId\": \"9b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e\",\n      \"originalFileName\": \"sample1.png\",\n      \"storedFileName\": \"9b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e.png\",\n      \"fileSizeBytes\": 8210,\n      \"mimeType\": \"image/png\"\n    }\n  ],\n  \"message\": \"1 image(s) uploaded. Use sessionId with POST /api/images/{sessionId}/compose.\"\n}"
+        },
+        {
+          "name": "400 – zero-byte file",
+          "status": "Bad Request",
+          "code": 400,
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"error\": \"File 'empty.png' is empty (0 bytes).\"\n}"
+        },
+        {
+          "name": "400 – unsupported type",
+          "status": "Bad Request",
+          "code": 400,
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"error\": \"File 'image.gif' has unsupported extension '.gif'. Only .jpg, .jpeg, .png are accepted.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "2. Compose Grid",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/images/{{sessionId}}/compose?layout=Grid2x2&format=Png&cellSize=400&padding=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "images", "{{sessionId}}", "compose"],
+          "query": [
+            { "key": "layout",   "value": "Grid2x2", "description": "Grid2x2 | Grid3x3 | Grid4x4" },
+            { "key": "format",   "value": "Png",     "description": "Png | Jpeg" },
+            { "key": "cellSize", "value": "400",     "description": "50–2000 px per cell side" },
+            { "key": "padding",  "value": "10",      "description": "0–100 px gap between cells" }
+          ]
+        },
+        "description": "Compose the uploaded images into a grid.\n\n`{{sessionId}}` is filled in automatically from Step 1. `outputFileName` is saved automatically for Step 3.\n\n**Each session can only be composed once.** A second call on the same session returns `409 Conflict`. Upload fresh images to get a new session.\n\n**Grid behaviour:**\n- The column count is fixed by `layout` (Grid2x2 = 2 cols, etc.)\n- If you upload more images than the square grid holds, rows are added automatically so every image appears — no images are dropped and no grey placeholders are used\n- If the image count doesn't divide evenly into columns, the last cell on the final row is left as white canvas\n- When extra rows are added a `warning` field explains this in the response\n\n**Validation:**\n- `cellSize` must be 50–2000; values outside this range return 400\n- `padding` must be 0–100; values outside this range return 400"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "",
+              "if (pm.response.code === 200) {",
+              "    const body = pm.response.json();",
+              "",
+              "    pm.collectionVariables.set('outputFileName', body.outputFileName);",
+              "    console.log('[Compose] outputFileName saved:', body.outputFileName);",
+              "    console.log('[Compose] grid:', body.gridColumns + 'x' + body.gridRows,",
+              "                '| placed:', body.placedImages,",
+              "                '| empty cells:', body.emptyCells);",
+              "",
+              "    if (body.warning) {",
+              "        console.warn('[Compose] Warning:', body.warning);",
+              "    }",
+              "",
+              "    pm.test('outputFileName is present', () => {",
+              "        pm.expect(body.outputFileName).to.be.a('string').and.not.empty;",
+              "    });",
+              "    pm.test('downloadUrl starts with /outputs/', () => {",
+              "        pm.expect(body.downloadUrl).to.match(/^\\/outputs\\//);",
+              "    });",
+              "    pm.test('gridColumns matches layout', () => {",
+              "        const layoutMap = { Grid2x2: 2, Grid3x3: 3, Grid4x4: 4 };",
+              "        pm.expect(body.gridColumns).to.equal(layoutMap[body.layout]);",
+              "    });",
+              "    pm.test('all images placed (no images dropped)', () => {",
+              "        pm.expect(body.placedImages).to.equal(body.totalImages);",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "200 OK – exact image count",
+          "status": "OK",
+          "code": 200,
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"outputFileName\": \"grid_Grid2x2_20240315_143022000.png\",\n  \"downloadUrl\": \"/outputs/grid_Grid2x2_20240315_143022000.png\",\n  \"layout\": \"Grid2x2\",\n  \"gridColumns\": 2,\n  \"gridRows\": 2,\n  \"totalImages\": 4,\n  \"placedImages\": 4,\n  \"emptyCells\": 0,\n  \"warning\": null\n}"
+        },
+        {
+          "name": "200 OK – more images than square capacity (rows extended)",
+          "status": "OK",
+          "code": 200,
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"outputFileName\": \"grid_Grid2x2_20240315_143022001.png\",\n  \"downloadUrl\": \"/outputs/grid_Grid2x2_20240315_143022001.png\",\n  \"layout\": \"Grid2x2\",\n  \"gridColumns\": 2,\n  \"gridRows\": 4,\n  \"totalImages\": 8,\n  \"placedImages\": 8,\n  \"emptyCells\": 0,\n  \"warning\": \"You uploaded 8 images but a Grid2x2 grid has 4 cells. The grid was extended to 2x4 to fit all images.\"\n}"
+        },
+        {
+          "name": "409 Conflict – session already composed",
+          "status": "Conflict",
+          "code": 409,
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"error\": \"Session 'a3f8e1c0b2d74e5f9a1c3e5b7d9f0123' has already been composed. Upload new images to start a new session.\"\n}"
+        },
+        {
+          "name": "400 – invalid cellSize",
+          "status": "Bad Request",
+          "code": 400,
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"error\": \"cellSize must be between 50 and 2000 pixels.\"\n}"
+        },
+        {
+          "name": "404 – session not found",
+          "status": "Not Found",
+          "code": 404,
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"error\": \"Session 'xyz' not found or contains no images.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "3. Download Composed Image",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/images/download/{{outputFileName}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "images", "download", "{{outputFileName}}"]
+        },
+        "description": "Download the composed grid image. `{{outputFileName}}` is filled in automatically from Step 2.\n\nPostman shows a rendered image preview in the response body panel. To save to disk: **Save Response → Save to a file**."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "",
+              "if (pm.response.code === 200) {",
+              "    const ct = pm.response.headers.get('Content-Type') || '';",
+              "    pm.test('Content-Type is image/png or image/jpeg', () => {",
+              "        pm.expect(ct).to.match(/^image\\/(png|jpeg)/);",
+              "    });",
+              "    pm.test('Response body is not empty', () => {",
+              "        pm.expect(pm.response.responseSize).to.be.above(0);",
+              "    });",
+              "    console.log('[Download] Content-Type:', ct, '| Size:', pm.response.responseSize, 'bytes');",
+              "}"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "200 OK – binary image",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Type", "value": "image/png" },
+            { "key": "Content-Disposition", "value": "attachment; filename=\"grid_Grid2x2_20240315_143022000.png\"" }
+          ],
+          "body": "<binary image data>"
+        },
+        {
+          "name": "404 – file not found",
+          "status": "Not Found",
+          "code": 404,
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"error\": \"Output file 'missing.png' not found.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Error Cases",
+      "item": [
+        {
+          "name": "Upload – no files",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": { "mode": "formdata", "formdata": [] },
+            "url": {
+              "raw": "{{baseUrl}}/api/images/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "upload"]
+            },
+            "description": "Empty multipart body — expects 400."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Error message present', () => {",
+                  "    pm.expect(pm.response.json().error).to.be.a('string').and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Upload – unsupported file type",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": [],
+                  "description": "Select a non-image file (e.g. a .gif or .txt) to trigger the 400."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/images/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "upload"]
+            },
+            "description": "Upload a file with an unsupported extension — expects 400. Only .jpg, .jpeg, and .png are accepted."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Error message present', () => {",
+                  "    pm.expect(pm.response.json().error).to.be.a('string').and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Compose – unknown session",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/images/nonexistent_session_xyz/compose?layout=Grid2x2",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "nonexistent_session_xyz", "compose"],
+              "query": [{ "key": "layout", "value": "Grid2x2" }]
+            },
+            "description": "Session ID that does not exist — expects 404."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Error message present', () => {",
+                  "    pm.expect(pm.response.json().error).to.be.a('string').and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Compose – already composed (409)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/images/{{sessionId}}/compose?layout=Grid2x2",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "{{sessionId}}", "compose"],
+              "query": [{ "key": "layout", "value": "Grid2x2" }]
+            },
+            "description": "Attempts to compose the same session a second time. Run this **after** Step 2 has already succeeded.\n\nEach session can only be composed once — expects 409 Conflict."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409', () => pm.response.to.have.status(409));",
+                  "pm.test('Error message mentions already composed', () => {",
+                  "    const error = pm.response.json().error || '';",
+                  "    pm.expect(error.toLowerCase()).to.include('already been composed');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "409 Conflict",
+              "status": "Conflict",
+              "code": 409,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"error\": \"Session 'a3f8e1c0b2d74e5f9a1c3e5b7d9f0123' has already been composed. Upload new images to start a new session.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Compose – invalid cellSize",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/images/{{sessionId}}/compose?layout=Grid2x2&cellSize=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "{{sessionId}}", "compose"],
+              "query": [
+                { "key": "layout",   "value": "Grid2x2" },
+                { "key": "cellSize", "value": "5" }
+              ]
+            },
+            "description": "cellSize of 5 is below the minimum of 50 — expects 400."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Error mentions cellSize', () => {",
+                  "    pm.expect(pm.response.json().error.toLowerCase()).to.include('cellsize');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Download – file not found",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/images/download/doesnotexist.png",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "download", "doesnotexist.png"]
+            },
+            "description": "File name that doesn't exist in outputs — expects 404."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Error message present', () => {",
+                  "    pm.expect(pm.response.json().error).to.be.a('string').and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    }
+  ]
+}

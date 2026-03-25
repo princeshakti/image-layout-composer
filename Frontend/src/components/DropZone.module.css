@@ -1,0 +1,48 @@
+.zone {
+  border: 1.5px dashed var(--border2);
+  border-radius: var(--radius);
+  padding: 40px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  position: relative;
+  user-select: none;
+}
+
+.zone:hover,
+.over {
+  border-color: var(--accent);
+  background: rgba(200, 240, 96, 0.03);
+}
+
+.input {
+  display: none;
+}
+
+.icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+  font-size: 18px;
+  pointer-events: none;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 5px;
+  pointer-events: none;
+}
+
+.hint {
+  font-size: 13px;
+  color: var(--text-muted);
+  pointer-events: none;
+}

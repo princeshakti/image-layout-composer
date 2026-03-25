@@ -1,0 +1,33 @@
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.icon {
+  flex-shrink: 0;
+  font-size: 11px;
+  margin-top: 1px;
+}
+
+.error {
+  background: rgba(240, 96, 96, 0.1);
+  border: 1px solid rgba(240, 96, 96, 0.25);
+  color: #f09090;
+}
+
+.warn {
+  background: rgba(240, 184, 96, 0.1);
+  border: 1px solid rgba(240, 184, 96, 0.25);
+  color: #f0c878;
+}
+
+.success {
+  background: rgba(200, 240, 96, 0.1);
+  border: 1px solid rgba(200, 240, 96, 0.25);
+  color: var(--accent);
+}

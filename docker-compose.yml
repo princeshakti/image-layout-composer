@@ -1,0 +1,17 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - uploads_data:/app/wwwroot/uploads
+      - outputs_data:/app/wwwroot/outputs
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+
+volumes:
+  uploads_data:
+  outputs_data:

@@ -1,0 +1,16 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.vscode/
+
+## Runtime-generated files
+ImageLayoutComposer/wwwroot/uploads/*/
+ImageLayoutComposer/wwwroot/outputs/*.png
+ImageLayoutComposer/wwwroot/outputs/*.jpg
+
+## OS
+.DS_Store
+Thumbs.db
